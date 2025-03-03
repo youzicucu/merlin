@@ -50,28 +50,40 @@ class TeamMatcher:
             
     def match_team(self, query_name: str, threshold: int = 65):
         """根据查询名称匹配最佳球队"""
-        query_name = query_name.strip().lower()
+        original_query = query_name
+        query_name = query_name.strip()
+        # 对英文名称转小写，保留中文原样
+        query_name_lower = query_name.lower()
+        
         logger.debug(f"尝试匹配球队名称: {query_name}")
         
         # 首先尝试精确匹配
         for team in self.teams:
-            # 检查名称匹配
-            if team.name and team.name.lower() == query_name:
+            # 检查名称匹配 (英文用小写比较)
+            if team.name and team.name.lower() == query_name_lower:
                 logger.info(f"精确匹配到球队名称: {query_name} -> {team.name}")
                 return team
                 
-            # 检查中文名匹配
-            if team.zh_name and team.zh_name.lower() == query_name:
-                logger.info(f"精确匹配到中文名称: {query_name} -> {team.name}")
+            # 检查中文名匹配 (中文直接比较，不转小写)
+            if team.zh_name and (team.zh_name == query_name):
+                logger.info(f"精确匹配到中文名称: {query_name} -> {team.name} (中文名: {team.zh_name})")
                 return team
                 
             # 检查别名匹配
             if team.aliases:
                 aliases_list = self._get_aliases_list(team.aliases)
                 for alias in aliases_list:
-                    if isinstance(alias, str) and alias.lower() == query_name:
+                    if isinstance(alias, str) and (alias == query_name):
                         logger.info(f"精确匹配到别名: {query_name} -> {team.name} (别名: {alias})")
                         return team
+        
+        # 尝试退回到搜索API使用的数据库搜索方法
+        logger.info(f"精确匹配失败，尝试数据库搜索: {original_query}")
+        db_results = self.search_in_db(original_query)
+        if db_results and len(db_results) > 0:
+            best_match = db_results[0]
+            logger.info(f"数据库搜索匹配到球队: {original_query} -> {best_match.name}")
+            return best_match
         
         # 如果没有精确匹配，尝试模糊匹配
         best_score = 0
