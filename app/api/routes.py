@@ -6,8 +6,8 @@ from app.data.database import get_db
 from app.services.prediction import get_prediction_service
 from app.core.logging import logger
 
-# 创建路由
-router = APIRouter()
+# 创建路由 - 添加前缀'/api'
+router = APIRouter(prefix="/api")
 
 # 请求模型
 class TeamPredictionRequest(BaseModel):
@@ -31,10 +31,10 @@ async def predict_with_teams(data: TeamPredictionRequest, response: Response, db
         return result
     except ValueError as e:
         logger.error(f"预测请求参数错误: {str(e)}")
-        raise HTTPException(404, str(e))
+        raise HTTPException(status_code=404, detail=str(e))
     except Exception as e:
         logger.error(f"预测失败: {str(e)}")
-        raise HTTPException(500, f"预测失败: {str(e)}")
+        raise HTTPException(status_code=500, detail=f"预测失败: {str(e)}")
 
 @router.get("/teams/search")
 async def search_teams(q: str, db: Session = Depends(get_db)):
@@ -61,7 +61,7 @@ async def search_teams(q: str, db: Session = Depends(get_db)):
         return {"teams": result}
     except Exception as e:
         logger.error(f"搜索球队失败: {str(e)}")
-        raise HTTPException(500, f"搜索失败: {str(e)}")
+        raise HTTPException(status_code=500, detail=f"搜索失败: {str(e)}")
 
 @router.get("/health")
 async def health_check():

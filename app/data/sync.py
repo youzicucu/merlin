@@ -4,6 +4,7 @@ import datetime
 import json
 from sqlalchemy.orm import Session
 from sqlalchemy import select, update, insert
+from sqlalchemy.exc import IntegrityError  # 新增导入
 
 from app.data.database import Team, TeamStats, Match, get_db
 from app.core.config import settings
@@ -32,14 +33,25 @@ async def sync_football_data_teams(db: Session):
                 'last_updated': datetime.datetime.utcnow()
             }
             
-            # 插入或更新团队数据
-            stmt = insert(Team).values(**team_data)
-            stmt = stmt.on_conflict_do_update(
-                index_elements=['id'],
-                set_=team_data
-            )
-            db.execute(stmt)
-            result.append(team_data)
+            # 修改: 使用SQLite兼容的upsert方法
+            try:
+                # 尝试查找现有记录
+                existing_team = db.execute(
+                    select(Team).where(Team.id == team_data['id'])
+                ).scalar_one_or_none()
+                
+                if existing_team:
+                    # 如果存在，更新记录
+                    for key, value in team_data.items():
+                        setattr(existing_team, key, value)
+                else:
+                    # 如果不存在，创建新记录
+                    new_team = Team(**team_data)
+                    db.add(new_team)
+                
+                result.append(team_data)
+            except Exception as e:
+                logger.error(f"处理球队 {team_data['name']} 时出错: {str(e)}")
             
         db.commit()
         logger.info(f"从 Football Data API 同步了 {len(result)} 支球队")
@@ -82,14 +94,25 @@ async def sync_api_football_teams(db: Session):
                     'last_updated': datetime.datetime.utcnow()
                 }
                 
-                # 插入或更新团队数据
-                stmt = insert(Team).values(**team_data)
-                stmt = stmt.on_conflict_do_update(
-                    index_elements=['id'],
-                    set_=team_data
-                )
-                db.execute(stmt)
-                all_teams.append(team_data)
+                # 修改: 使用SQLite兼容的upsert方法
+                try:
+                    # 尝试查找现有记录
+                    existing_team = db.execute(
+                        select(Team).where(Team.id == team_data['id'])
+                    ).scalar_one_or_none()
+                    
+                    if existing_team:
+                        # 如果存在，更新记录
+                        for key, value in team_data.items():
+                            setattr(existing_team, key, value)
+                    else:
+                        # 如果不存在，创建新记录
+                        new_team = Team(**team_data)
+                        db.add(new_team)
+                    
+                    all_teams.append(team_data)
+                except Exception as e:
+                    logger.error(f"处理球队 {team_data['name']} 时出错: {str(e)}")
             
             # 避免API速率限制
             await asyncio.sleep(1)
@@ -146,13 +169,23 @@ async def sync_matches(db: Session):
                 })
             }
             
-            # 插入或更新比赛数据
-            stmt = insert(Match).values(**match_data)
-            stmt = stmt.on_conflict_do_update(
-                index_elements=['match_id'],
-                set_=match_data
-            )
-            db.execute(stmt)
+            # 修改: 使用SQLite兼容的upsert方法
+            try:
+                # 尝试查找现有记录
+                existing_match = db.execute(
+                    select(Match).where(Match.match_id == match_data['match_id'])
+                ).scalar_one_or_none()
+                
+                if existing_match:
+                    # 如果存在，更新记录
+                    for key, value in match_data.items():
+                        setattr(existing_match, key, value)
+                else:
+                    # 如果不存在，创建新记录
+                    new_match = Match(**match_data)
+                    db.add(new_match)
+            except Exception as e:
+                logger.error(f"处理比赛 {match_data['match_id']} 时出错: {str(e)}")
             
         db.commit()
         logger.info(f"同步了 {len(matches_data)} 场比赛")
@@ -205,13 +238,23 @@ async def update_team_stats(db: Session):
                 'last_updated': datetime.datetime.utcnow()
             }
             
-            # 插入或更新统计数据
-            stmt = insert(TeamStats).values(**stats_data)
-            stmt = stmt.on_conflict_do_update(
-                index_elements=['team_id'],
-                set_=stats_data
-            )
-            db.execute(stmt)
+            # 修改: 使用SQLite兼容的upsert方法
+            try:
+                # 尝试查找现有记录
+                existing_stats = db.execute(
+                    select(TeamStats).where(TeamStats.team_id == stats_data['team_id'])
+                ).scalar_one_or_none()
+                
+                if existing_stats:
+                    # 如果存在，更新记录
+                    for key, value in stats_data.items():
+                        setattr(existing_stats, key, value)
+                else:
+                    # 如果不存在，创建新记录
+                    new_stats = TeamStats(**stats_data)
+                    db.add(new_stats)
+            except Exception as e:
+                logger.error(f"处理球队 {team.id} 统计数据时出错: {str(e)}")
             
         db.commit()
         logger.info(f"更新了 {len(teams)} 支球队的统计数据")

@@ -1,4 +1,4 @@
-from sqlalchemy import Column, Integer, String, DateTime, JSON, Float, create_engine
+from sqlalchemy import Column, Integer, String, DateTime, JSON, Float, create_engine, inspect
 from sqlalchemy.ext.declarative import declarative_base
 from sqlalchemy.orm import sessionmaker
 import datetime
@@ -53,13 +53,35 @@ class Match(Base):
 engine = create_engine(settings.DATABASE_URL)
 SessionLocal = sessionmaker(autocommit=False, autoflush=False, bind=engine)
 
+# 显式创建数据库表
+def create_tables():
+    try:
+        Base.metadata.create_all(bind=engine)
+        logger.info("数据库表创建完成")
+    except Exception as e:
+        logger.error(f"数据库表创建失败: {str(e)}")
+
+# 检查表是否存在
+def check_tables_exist():
+    inspector = inspect(engine)
+    tables = ['teams', 'team_stats', 'matches']
+    missing_tables = [table for table in tables if not inspector.has_table(table)]
+    return len(missing_tables) == 0
+
 # 确保所有表存在
 def init_db():
     try:
-        Base.metadata.create_all(bind=engine)
+        # 检查表是否存在，不存在则创建
+        if not check_tables_exist():
+            create_tables()
+        else:
+            logger.info("数据库表已存在")
+        
         logger.info("数据库初始化成功")
     except Exception as e:
         logger.error(f"数据库初始化失败: {str(e)}")
+        # 如果出错，尝试强制创建表
+        create_tables()
 
 # 获取数据库会话
 def get_db():
@@ -68,3 +90,7 @@ def get_db():
         yield db
     finally:
         db.close()
+
+# 获取数据库引擎
+def get_engine():
+    return engine
