@@ -110,9 +110,26 @@ class PredictionService:
             logger.error("预测模型未加载")
             raise ValueError("预测模型未加载，无法进行预测")
             
-        # 匹配球队
+        logger.info(f"收到预测请求: 主队={home_team_name}, 客队={away_team_name}")
+        
+        # 匹配球队 - 先尝试直接匹配
         home_team = self.team_matcher.match_team(home_team_name)
         away_team = self.team_matcher.match_team(away_team_name)
+        
+        # 如果直接匹配失败，尝试使用数据库搜索
+        if not home_team:
+            logger.warning(f"常规匹配未找到主队，尝试数据库搜索: {home_team_name}")
+            search_results = self.team_matcher.search_in_db(home_team_name)
+            if search_results and len(search_results) > 0:
+                home_team = search_results[0]
+                logger.info(f"数据库搜索找到主队: {home_team_name} -> {home_team.name}")
+        
+        if not away_team:
+            logger.warning(f"常规匹配未找到客队，尝试数据库搜索: {away_team_name}")
+            search_results = self.team_matcher.search_in_db(away_team_name)
+            if search_results and len(search_results) > 0:
+                away_team = search_results[0]
+                logger.info(f"数据库搜索找到客队: {away_team_name} -> {away_team.name}")
         
         if not home_team:
             raise ValueError(f"未找到主队: {home_team_name}")
