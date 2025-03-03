@@ -6,8 +6,7 @@ from app.data.database import get_db
 from app.services.prediction import get_prediction_service
 from app.core.logging import logger
 
-# 创建路由 - 添加前缀'/api'
-router = APIRouter(prefix="/api")
+router = APIRouter( )
 
 # 请求模型
 class TeamPredictionRequest(BaseModel):
