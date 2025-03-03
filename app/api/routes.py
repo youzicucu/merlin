@@ -46,6 +46,17 @@ async def search_teams(q: str, db: Session = Depends(get_db)):
             return {"teams": []}
             
         team_matcher = get_team_matcher(db)
+        teams = team_matcher.search_in_
+@router.get("/teams/search")
+async def search_teams(q: str, db: Session = Depends(get_db)):
+    """搜索球队"""
+    from app.utils.team_matching import get_team_matcher
+    
+    try:
+        if not q or len(q) < 2:
+            return {"teams": []}
+            
+        team_matcher = get_team_matcher(db)
         teams = team_matcher.search_in_db(q)
         
         result = [
