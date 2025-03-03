@@ -2,6 +2,7 @@ from fuzzywuzzy import fuzz
 from sqlalchemy import select, or_
 import pandas as pd
 from sqlalchemy.orm import Session
+import json
 
 from app.data.database import Team
 from app.core.logging import logger
@@ -20,15 +21,42 @@ class TeamMatcher:
         except Exception as e:
             logger.error(f"从数据库加载球队信息失败: {str(e)}")
             self.teams = []
+    
+    def _get_aliases_list(self, aliases_data):
+        """将别名数据转换为列表，无论其原始格式如何"""
+        if not aliases_data:
+            return []
             
-    def match_team(self, query_name: str, threshold: int = 75):
+        if isinstance(aliases_data, list):
+            return aliases_data
+            
+        if isinstance(aliases_data, str):
+            # 尝试解析JSON
+            try:
+                parsed = json.loads(aliases_data)
+                if isinstance(parsed, list):
+                    return parsed
+                return [aliases_data]  # 如果不是列表，就当作单一字符串
+            except json.JSONDecodeError:
+                # 不是JSON，尝试按顿号分割
+                return aliases_data.split('、')
+                
+        # 其他情况，尝试转换为字符串后按顿号分割
+        try:
+            return str(aliases_data).split('、')
+        except:
+            logger.warning(f"无法处理的别名格式: {type(aliases_data)} - {aliases_data}")
+            return []
+            
+    def match_team(self, query_name: str, threshold: int = 65):
         """根据查询名称匹配最佳球队"""
         query_name = query_name.strip().lower()
+        logger.debug(f"尝试匹配球队名称: {query_name}")
         
         # 首先尝试精确匹配
         for team in self.teams:
             # 检查名称匹配
-            if team.name.lower() == query_name:
+            if team.name and team.name.lower() == query_name:
                 logger.info(f"精确匹配到球队名称: {query_name} -> {team.name}")
                 return team
                 
@@ -39,9 +67,10 @@ class TeamMatcher:
                 
             # 检查别名匹配
             if team.aliases:
-                for alias in team.aliases:
-                    if alias.lower() == query_name:
-                        logger.info(f"精确匹配到别名: {query_name} -> {team.name}")
+                aliases_list = self._get_aliases_list(team.aliases)
+                for alias in aliases_list:
+                    if isinstance(alias, str) and alias.lower() == query_name:
+                        logger.info(f"精确匹配到别名: {query_name} -> {team.name} (别名: {alias})")
                         return team
         
         # 如果没有精确匹配，尝试模糊匹配
@@ -50,22 +79,25 @@ class TeamMatcher:
         
         for team in self.teams:
             # 检查各种名称形式
-            name_forms = [team.name]
+            name_forms = []
+            if team.name:
+                name_forms.append(team.name)
             if team.zh_name:
                 name_forms.append(team.zh_name)
             if team.official_name:
                 name_forms.append(team.official_name)
             if team.aliases:
-                name_forms.extend(team.aliases)
+                name_forms.extend(self._get_aliases_list(team.aliases))
                 
             # 计算每种形式的匹配分数
             for name in name_forms:
-                if not name:
+                if not name or not isinstance(name, str):
                     continue
                 score = fuzz.ratio(query_name, name.lower())
                 if score > best_score and score >= threshold:
                     best_score = score
                     best_match = team
+                    logger.debug(f"找到更好的匹配: {query_name} -> {name} (得分: {score})")
         
         if best_match:
             logger.info(f"模糊匹配到球队: {query_name} -> {best_match.name} (得分: {best_score})")

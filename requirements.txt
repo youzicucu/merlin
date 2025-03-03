@@ -16,4 +16,3 @@ pendulum>=3.0.0
 cachetools>=5.0.0
 sqlalchemy>=2.0.0
 alembic>=1.10.0
-pydantic-settings>=2.0.0
