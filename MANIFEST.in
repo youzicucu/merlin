@@ -1,0 +1,5 @@
+include *.py
+include *.c
+include *.h
+include LICENSE
+include README.md
