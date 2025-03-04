@@ -1,0 +1,63 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>智能足球预测系统</title>
+    <link rel="stylesheet" href="/static/css/style.css">
+    <link rel="icon" type="image/png" href="/static/images/favicon.png">
+</head>
+<body>
+    <div class="form-container">
+        <h1>⚽ 智能足球预测系统</h1>
+        
+        <form id="predictForm">
+            <div class="form-group">
+                <label for="home_team">主队名称</label>
+                <input
+                    type="text"
+                    id="home_team"
+                    placeholder="例如：曼城 或 Manchester City FC"
+                    required
+                    autocomplete="off"
+                >
+                <div class="suggestions" id="home_suggestions"></div>
+            </div>
+            
+            <div class="form-group">
+                <label for="away_team">客队名称</label>
+                <input
+                    type="text"
+                    id="away_team"
+                    placeholder="例如：利物浦 或 Liverpool FC"
+                    required
+                    autocomplete="off"
+                >
+                <div class="suggestions" id="away_suggestions"></div>
+            </div>
+            
+            <button type="submit" id="predictBtn">开始智能分析</button>
+        </form>
+
+        <div class="examples">
+            <h3>🔍 使用提示：</h3>
+            <p>支持中文名称或球队官方英文名称，示例：</p>
+            <ul>
+                <li>曼联 或 Manchester United FC</li>
+                <li>曼城 或 Manchester City FC</li>
+                <li>利物浦 或 Liverpool FC</li>
+                <li>切尔西 或 Chelsea FC</li>
+                <li>拜仁慕尼黑 或 Bayern Munich</li>
+            </ul>
+        </div>
+        
+        <div id="result"></div>
+        
+        <footer>
+            <p>© 2025 智能足球预测系统 | <a href="https://github.com/yourusername/football-prediction" target="_blank">GitHub</a></p>
+        </footer>
+    </div>
+
+    <script src="/static/js/main.js"></script>
+</body>
+</html>

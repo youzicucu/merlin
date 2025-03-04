@@ -1,0 +1,67 @@
+id,en_name,zh_name,aliases,country,source
+65,Manchester City FC,曼城,曼彻斯特城、蓝月亮,England,football-data
+73,Tottenham Hotspur FC,热刺,托特纳姆热刺、托特纳姆,England,football-data
+61,Chelsea FC,切尔西,蓝军,England,football-data
+57,Arsenal FC,阿森纳,枪手、兵工厂,England,football-data
+66,Manchester United FC,曼联,曼彻斯特联、红魔,England,football-data
+64,Liverpool FC,利物浦,红军,England,football-data
+563,West Ham United FC,西汉姆联,西汉姆,England,football-data
+76,Wolverhampton Wanderers FC,狼队,狼队、沃尔弗汉普顿,England,football-data
+338,Leicester City FC,莱斯特城,莱切斯特城,England,football-data
+62,Everton FC,埃弗顿,太妃糖,England,football-data
+354,Crystal Palace FC,水晶宫,,England,football-data
+341,Leeds United FC,利兹联,,England,football-data
+397,Brighton & Hove Albion FC,布莱顿,布赖顿,England,football-data
+346,Watford FC,沃特福德,,England,football-data
+67,Newcastle United FC,纽卡斯尔,纽卡,England,football-data
+5,Bayern München,拜仁慕尼黑,拜仁,Germany,football-data
+4,Borussia Dortmund,多特蒙德,多特,Germany,football-data
+2,TSG 1899 Hoffenheim,霍芬海姆,,Germany,football-data
+721,RB Leipzig,莱比锡,RB莱比锡,Germany,football-data
+3,Bayer 04 Leverkusen,勒沃库森,药厂,Germany,football-data
+86,Real Madrid CF,皇家马德里,皇马,Spain,football-data
+81,FC Barcelona,巴塞罗那,巴萨,Spain,football-data
+78,Club Atlético de Madrid,马德里竞技,马竞,Spain,football-data
+559,Sevilla FC,塞维利亚,,Spain,football-data
+94,Villarreal CF,比利亚雷亚尔,黄潜,Spain,football-data
+80,RCD Espanyol de Barcelona,西班牙人,,Spain,football-data
+90,Real Betis Balompié,皇家贝蒂斯,贝蒂斯,Spain,football-data
+92,Real Sociedad de Fútbol,皇家社会,,Spain,football-data
+87,Rayo Vallecano de Madrid,巴列卡诺,巴列,Spain,football-data
+95,Valencia CF,瓦伦西亚,瓦伦,Spain,football-data
+263,Deportivo Alavés,阿拉维斯,,Spain,football-data
+77,Athletic Club,毕尔巴鄂,毕尔巴鄂竞技,Spain,football-data
+558,RC Celta de Vigo,塞尔塔,,Spain,football-data
+82,Getafe CF,赫塔菲,,Spain,football-data
+83,Granada CF,格拉纳达,,Spain,football-data
+89,RCD Mallorca,马洛卡,,Spain,football-data
+264,Cádiz CF,加的斯,,Spain,football-data
+102,Inter Milan,国际米兰,国米,Italy,football-data
+5890,AC Milan,AC米兰,米兰,Italy,football-data
+109,Juventus FC,尤文图斯,尤文,Italy,football-data
+113,SSC Napoli,那不勒斯,,Italy,football-data
+98,AC Monza,蒙扎,,Italy,football-data
+108,Inter,国际米兰,国米,Italy,football-data
+100,SS Lazio,拉齐奥,,Italy,football-data
+99,ACF Fiorentina,佛罗伦萨,佛罗伦萨,Italy,football-data
+430,Atalanta BC,亚特兰大,,Italy,football-data
+103,Bologna FC 1909,博洛尼亚,,Italy,football-data
+450,Hellas Verona FC,维罗纳,,Italy,football-data
+471,US Sassuolo Calcio,萨索洛,,Italy,football-data
+585,Spezia Calcio,斯佩齐亚,,Italy,football-data
+107,Genoa CFC,热那亚,,Italy,football-data
+488,Torino FC,都灵,,Italy,football-data
+586,Venezia FC,威尼斯,,Italy,football-data
+110,UC Sampdoria,桑普多利亚,桑普,Italy,football-data
+85,Paris Saint-Germain FC,巴黎圣日尔曼,巴黎,France,football-data
+521,Lille OSC,里尔,,France,football-data
+523,Olympique Lyonnais,里昂,里昂,France,football-data
+516,Olympique de Marseille,马赛,马赛,France,football-data
+543,AS Monaco FC,摩纳哥,,France,football-data
+522,OGC Nice,尼斯,,France,football-data
+576,RC Strasbourg Alsace,斯特拉斯堡,,France,football-data
+512,Stade Brestois 29,布雷斯特,,France,football-data
+529,Stade Rennais FC 1901,雷恩,,France,football-data
+528,AS Saint-Étienne,圣埃蒂安,,France,football-data
+518,Montpellier HSC,蒙彼利埃,,France,football-data
+511,Toulouse FC,图卢兹,,France,football-data
