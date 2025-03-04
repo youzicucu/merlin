@@ -114,7 +114,7 @@ class TeamMatcher:
         
         return normalized
             
-    def match_team(self, query_name: str, threshold: int = 65, source: str = None):
+    def match_team(self, query_name: str, threshold: int = 60, source: str = None):
         """根据查询名称匹配最佳球队"""
         self.stats['total_queries'] += 1
         
@@ -279,6 +279,30 @@ class TeamMatcher:
             # 保存到文件
             self._save_learned_aliases()
             logger.info(f"学习了新别名映射: {alias} -> {team_id}")
+            
+            # 同时更新球队的别名列表
+            for team in self.teams:
+                if team.id == team_id:
+                    aliases_list = self._get_aliases_list(team.aliases)
+                    if alias not in aliases_list:
+                        aliases_list.append(alias)
+                        team.aliases = aliases_list
+                        # 更新数据库
+                        try:
+                            self.db.execute(
+                                """
+                                UPDATE teams 
+                                SET aliases = :aliases
+                                WHERE id = :id
+                                """, 
+                                {"aliases": json.dumps(aliases_list), "id": team_id}
+                            )
+                            self.db.commit()
+                            logger.info(f"已将新别名 {alias} 添加到球队 {team.name} 的别名列表")
+                        except Exception as e:
+                            self.db.rollback()
+                            logger.error(f"更新球队别名失败: {str(e)}")
+                    break
     
     def _load_learned_aliases(self):
         """加载学习过的别名"""

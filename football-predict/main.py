@@ -8,8 +8,8 @@ from app.data.database import init_db  # 添加导入
 async def startup():
     """应用启动任务"""
     try:
-        # 先初始化数据库
-        init_db()  # 添加这一行初始化数据库
+        # 数据库初始化已在app/__init__.py的startup_event中完成
+        # 不需要在这里重复初始化
         
         logger.info("执行初始数据同步...")
         await run_sync()
