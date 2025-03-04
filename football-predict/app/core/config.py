@@ -1,42 +1,29 @@
+# app/core/config.py
 import os
 from dotenv import load_dotenv
-from pydantic_settings import BaseSettings
 
-# 加载环境变量
+# 加载.env文件中的环境变量
 load_dotenv()
 
-class Settings(BaseSettings):
-    APP_NAME: str = "智能足球预测系统"
-    APP_VERSION: str = "1.0.0"
-    DEBUG: bool = os.getenv("DEBUG", "False").lower() in ("true", "1", "t")
+class Settings:
+    # 原有API密钥
+    FOOTBALL_DATA_API_KEY = os.getenv("FOOTBALL_DATA_API_KEY")
+    JUHE_API_KEY = os.getenv("JUHE_API_KEY")
     
-    # API Keys
-    FOOTBALL_DATA_API_KEY: str = os.getenv("FOOTBALL_DATA_API_KEY", "")
-    API_FOOTBALL_KEY: str = os.getenv("API_FOOTBALL_KEY", "")
+    # 数据库路径
+    DB_PATH = os.getenv("DB_PATH", "data/football.db")
     
-    # API URLs
-    FOOTBALL_DATA_URL: str = "https://api.football-data.org/v4"
-    API_FOOTBALL_URL: str = "https://v3.football.api-sports.io"
+    # 日志设置
+    LOG_LEVEL = os.getenv("LOG_LEVEL", "INFO")
     
-    # 数据库设置
-    DATABASE_URL: str = os.getenv("DATABASE_URL", "sqlite:///./data/football.db")
+    # 爬虫设置
+    USER_AGENT = "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/91.0.4472.124 Safari/537.36"
     
-    # 缓存设置
-    CACHE_TTL: int = int(os.getenv("CACHE_TTL", "3600"))  # 默认1小时
-    CACHE_MAXSIZE: int = int(os.getenv("CACHE_MAXSIZE", "100"))
+    # 是否开启数据抓取功能
+    ENABLE_SCRAPING = os.getenv("ENABLE_SCRAPING", "True").lower() in ("true", "1", "t")
     
-    # 同步设置
-    SYNC_CRON_HOUR: int = int(os.getenv("SYNC_CRON_HOUR", "3"))
-    SYNC_CRON_MINUTE: int = int(os.getenv("SYNC_CRON_MINUTE", "0"))
-    
-    # API 头信息
-    @property
-    def FOOTBALL_DATA_HEADERS(self):
-        return {"X-Auth-Token": self.FOOTBALL_DATA_API_KEY}
-    
-    @property
-    def API_FOOTBALL_HEADERS(self):
-        return {"x-apisports-key": self.API_FOOTBALL_KEY}
+    # 数据更新频率(小时)
+    DATA_UPDATE_INTERVAL = int(os.getenv("DATA_UPDATE_INTERVAL", "12"))
 
-# 全局设置实例
+# 创建一个全局可访问的设置对象
 settings = Settings()

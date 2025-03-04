@@ -1,96 +1,77 @@
-from sqlalchemy import Column, Integer, String, DateTime, JSON, Float, create_engine, inspect
-from sqlalchemy.ext.declarative import declarative_base
-from sqlalchemy.orm import sessionmaker
-import datetime
-
+# app/data/database.py
+import sqlite3
+import os
+import logging
 from app.core.config import settings
-from app.core.logging import logger
 
-Base = declarative_base()
+logger = logging.getLogger(__name__)
 
-class Team(Base):
-    __tablename__ = 'teams'
+def get_db_connection():
+    """获取数据库连接"""
+    db_path = settings.DB_PATH
+    os.makedirs(os.path.dirname(db_path), exist_ok=True)
     
-    id = Column(Integer, primary_key=True)
-    name = Column(String(100), unique=True)
-    official_name = Column(String(100))
-    zh_name = Column(String(100))
-    aliases = Column(JSON)
-    league = Column(String(50))
-    country = Column(String(50))
-    logo_url = Column(String(255))
-    source = Column(String(20))
-    last_updated = Column(DateTime, default=datetime.datetime.utcnow)
+    conn = sqlite3.connect(db_path)
+    conn.row_factory = sqlite3.Row
+    return conn
 
-class TeamStats(Base):
-    __tablename__ = 'team_stats'
-    
-    id = Column(Integer, primary_key=True)
-    team_id = Column(Integer)
-    avg_goals_home = Column(Float, default=0.0)
-    avg_goals_away = Column(Float, default=0.0) 
-    win_rate_home = Column(Float, default=0.0)
-    win_rate_away = Column(Float, default=0.0)
-    total_matches = Column(Integer, default=0)
-    last_updated = Column(DateTime, default=datetime.datetime.utcnow)
-
-class Match(Base):
-    __tablename__ = 'matches'
-    
-    id = Column(Integer, primary_key=True)
-    match_id = Column(String(50), unique=True)
-    home_team_id = Column(Integer)
-    away_team_id = Column(Integer)
-    home_goals = Column(Integer)
-    away_goals = Column(Integer)
-    status = Column(String(20))
-    date = Column(DateTime)
-    competition = Column(String(50))
-    source = Column(String(20))
-    details = Column(JSON, nullable=True)
-
-# 数据库连接和会话
-engine = create_engine(settings.DATABASE_URL)
-SessionLocal = sessionmaker(autocommit=False, autoflush=False, bind=engine)
-
-# 显式创建数据库表
-def create_tables():
-    try:
-        Base.metadata.create_all(bind=engine)
-        logger.info("数据库表创建完成")
-    except Exception as e:
-        logger.error(f"数据库表创建失败: {str(e)}")
-
-# 检查表是否存在
-def check_tables_exist():
-    inspector = inspect(engine)
-    tables = ['teams', 'team_stats', 'matches']
-    missing_tables = [table for table in tables if not inspector.has_table(table)]
-    return len(missing_tables) == 0
-
-# 确保所有表存在
 def init_db():
-    try:
-        # 检查表是否存在，不存在则创建
-        if not check_tables_exist():
-            create_tables()
-        else:
-            logger.info("数据库表已存在")
-        
-        logger.info("数据库初始化成功")
-    except Exception as e:
-        logger.error(f"数据库初始化失败: {str(e)}")
-        # 如果出错，尝试强制创建表
-        create_tables()
-
-# 获取数据库会话
-def get_db():
-    db = SessionLocal()
-    try:
-        yield db
-    finally:
-        db.close()
-
-# 获取数据库引擎
-def get_engine():
-    return engine
+    """初始化数据库表"""
+    conn = get_db_connection()
+    cursor = conn.cursor()
+    
+    # 创建联赛表
+    cursor.execute('''
+    CREATE TABLE IF NOT EXISTS competitions (
+        id INTEGER PRIMARY KEY,
+        name TEXT NOT NULL,
+        country TEXT,
+        code TEXT
+    )
+    ''')
+    
+    # 创建比赛表
+    cursor.execute('''
+    CREATE TABLE IF NOT EXISTS matches (
+        id INTEGER PRIMARY KEY,
+        competition_id INTEGER,
+        home_team TEXT NOT NULL,
+        away_team TEXT NOT NULL,
+        home_team_id INTEGER,
+        away_team_id INTEGER,
+        match_date TEXT,
+        status TEXT,
+        source TEXT DEFAULT 'football-data',
+        FOREIGN KEY (competition_id) REFERENCES competitions (id)
+    )
+    ''')
+    
+    # 创建球队统计数据表
+    cursor.execute('''
+    CREATE TABLE IF NOT EXISTS team_stats (
+        team_id INTEGER,
+        team_name TEXT NOT NULL,
+        stats_data TEXT,  # 将存储为JSON字符串
+        updated_at TEXT,
+        PRIMARY KEY (team_id, team_name)
+    )
+    ''')
+    
+    # 创建预测结果表
+    cursor.execute('''
+    CREATE TABLE IF NOT EXISTS predictions (
+        id INTEGER PRIMARY KEY AUTOINCREMENT,
+        match_id INTEGER,
+        home_team TEXT NOT NULL,
+        away_team TEXT NOT NULL,
+        home_win_prob REAL,
+        draw_prob REAL,
+        away_win_prob REAL,
+        predicted_at TEXT,
+        FOREIGN KEY (match_id) REFERENCES matches (id)
+    )
+    ''')
+    
+    conn.commit()
+    conn.close()
+    logger.info("Database initialized successfully")

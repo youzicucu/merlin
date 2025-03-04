@@ -1,68 +1,63 @@
-from fastapi import APIRouter, Request, HTTPException, Response, Depends
-from sqlalchemy.orm import Session
-from pydantic import BaseModel
+# app/api/routes.py
+from flask import Blueprint, request, jsonify
+from app.services.prediction import PredictionService
+import logging
 
-from app.data.database import get_db
-from app.services.prediction import get_prediction_service
-from app.core.logging import logger
+logger = logging.getLogger(__name__)
+api_bp = Blueprint('api', __name__)
+prediction_service = PredictionService()
 
-router = APIRouter( )
-
-# 请求模型
-class TeamPredictionRequest(BaseModel):
-    home_team: str
-    away_team: str
-
-@router.post("/predict/teams")
-async def predict_with_teams(data: TeamPredictionRequest, response: Response, db: Session = Depends(get_db)):
-    """预测两支球队之间的比赛结果"""
-    response.headers["Content-Type"] = "application/json; charset=utf-8"
+@api_bp.route('/predict', methods=['POST'])
+def predict_match():
+    """预测比赛结果API"""
+    data = request.json
     
-    try:
-        logger.info(f"收到预测请求: 主队={data.home_team}, 客队={data.away_team}")
-        
-        # 获取预测服务
-        prediction_service = get_prediction_service(db)
-        
-        # 执行预测
-        result = prediction_service.predict_match(data.home_team, data.away_team)
-        
-        return result
-    except ValueError as e:
-        logger.error(f"预测请求参数错误: {str(e)}")
-        raise HTTPException(status_code=404, detail=str(e))
-    except Exception as e:
-        logger.error(f"预测失败: {str(e)}")
-        raise HTTPException(status_code=500, detail=f"预测失败: {str(e)}")
-
-@router.get("/teams/search")
-async def search_teams(q: str, db: Session = Depends(get_db)):
-    """搜索球队"""
-    from app.utils.team_matching import get_team_matcher
+    if not data or 'home_team' not in data or 'away_team' not in data:
+        return jsonify({
+            'error': 'Missing required parameters: home_team, away_team'
+        }), 400
     
-    try:
-        if not q or len(q) < 2:
-            return {"teams": []}
-            
-        team_matcher = get_team_matcher(db)
-        teams = team_matcher.search_in_db(q)
+    home_team = data['home_team']
+    away_team = data['away_team']
+    
+    logger.info(f"Prediction request for: {home_team} vs {away_team}")
+    result = prediction_service.predict_match(home_team, away_team)
+    
+    if 'error' in result:
+        return jsonify(result), 400
         
-        result = [
-            {
-                "id": team.id,
-                "name": team.name,
-                "zh_name": team.zh_name,
-                "country": team.country
-            }
-            for team in teams
-        ]
-        
-        return {"teams": result}
-    except Exception as e:
-        logger.error(f"搜索球队失败: {str(e)}")
-        raise HTTPException(status_code=500, detail=f"搜索失败: {str(e)}")
+    return jsonify(result)
 
-@router.get("/health")
-async def health_check():
-    """健康检查端点"""
-    return {"status": "ok", "service": "football-prediction-api"}
+@api_bp.route('/matches', methods=['GET'])
+def get_upcoming_matches():
+    """获取即将到来的比赛"""
+    from app.data.database import get_db_connection
+    import datetime
+    
+    conn = get_db_connection()
+    cursor = conn.cursor()
+    
+    days = request.args.get('days', 7, type=int)
+    today = datetime.datetime.now().strftime('%Y-%m-%d')
+    future = (datetime.datetime.now() + datetime.timedelta(days=days)).strftime('%Y-%m-%d')
+    
+    cursor.execute(
+        """
+        SELECT m.id, m.home_team, m.away_team, m.match_date, c.name as competition
+        FROM matches m
+        LEFT JOIN competitions c ON m.competition_id = c.id
+        WHERE m.match_date BETWEEN ? AND ?
+        ORDER BY m.match_date
+        """,
+        (today, future)
+    )
+    
+    matches = [{
+        'id': row['id'],
+        'home_team': row['home_team'],
+        'away_team': row['away_team'],
+        'date': row['match_date'],
+        'competition': row['competition']
+    } for row in cursor.fetchall()]
+    
+    return jsonify({'matches': matches})
